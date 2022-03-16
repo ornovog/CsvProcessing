@@ -7,35 +7,30 @@ import (
 )
 
 type Avg struct {
-	*prc.BaseOperation
-}
-
-func (a *Avg) Run() prc.LazyTable {
-	go func() {
-		defer close(a.OutputTable)
-		var sum, n float32
-		for row := range a.InputTable {
-			if len(row) == 1 {
-				val, err := strconv.Atoi(row[0])
-				if err == nil {
-					sum += float32(val)
-					n++
-				}
-			}
-
-		}
-		if n > 0 {
-			avgStr := fmt.Sprintf("%f", sum/n)
-			a.OutputTable <- prc.Row{avgStr}
-		}
-	}()
-
-	return a.OutputTable
+	*prc.ReduceOperation
 }
 
 func NewAvg() prc.Operation {
-	base := &prc.BaseOperation{}
-	a := &Avg{BaseOperation: base}
-	base.Op = a
+	var sum *float32
+	Sum := func(row prc.Row, index int){
+		if len(row) == 1 {
+			val, err := strconv.Atoi(row[0])
+			if err == nil {
+				if sum == nil{
+					sum = new(float32)
+				}
+
+				*sum += float32(val)
+			}
+		}
+	}
+
+	Div := func(count int) *prc.Row{
+		return &prc.Row{fmt.Sprintf("%f", *sum/float32(count))}
+	}
+
+	r := prc.NewReduceOperation(Sum, Div)
+	a := &Avg{ReduceOperation: r}
+	r.Op = a
 	return a
 }

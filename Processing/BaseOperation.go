@@ -1,8 +1,9 @@
 package Processing
 
 type BaseOperation struct {
+	RowNumber int
 	InputTable, OutputTable LazyTable
-	Op                      Operation
+	Op Operation
 }
 
 func (b *BaseOperation) With(nextOperation Operation) Operation {
@@ -10,7 +11,7 @@ func (b *BaseOperation) With(nextOperation Operation) Operation {
 	return nextOperation
 }
 
-func (b *BaseOperation) Init(inputTable LazyTable) {
+func (b *BaseOperation) Init(inputTable LazyTable){
 	b.OutputTable = make(chan Row)
 	b.InputTable = inputTable
 }

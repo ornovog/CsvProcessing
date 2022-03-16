@@ -2,13 +2,14 @@ package main
 
 import (
 	imp "csvProcessing/Implementations"
-	"csvProcessing/Processing"
+	prc "csvProcessing/Processing"
 	"fmt"
 )
 
 
 func main() {
-	table := Processing.NewCsvLoader("CsvToProcess.csv").
+	table := prc.NewCsvLoader("CsvToProcess.csv").
+		With(imp.NewFilterRows(3, "Iowa")).
 		With(imp.NewFilterRows(3, "Iowa")).
 		With(imp.NewGetColumn(10)).
 		With(imp.NewAvg()).

@@ -7,31 +7,24 @@ import (
 )
 
 type Ceil struct {
-	*prc.BaseOperation
-}
-
-func (c *Ceil) Run() prc.LazyTable {
-	go func() {
-		defer close(c.OutputTable)
-		for row := range c.InputTable {
-			if len(row) == 1 {
-				val, err := strconv.ParseFloat(row[0], 64)
-				if err == nil {
-					ceil := int(math.Ceil(val))
-					ceilStr := strconv.Itoa(ceil)
-					c.OutputTable <- prc.Row{ceilStr}
-				}
-			}
-
-		}
-	}()
-
-	return c.OutputTable
+	*prc.MapOperation
 }
 
 func NewCeil() prc.Operation {
-	base := &prc.BaseOperation{}
-	c := &Ceil{BaseOperation: base}
-	base.Op = c
-	return c
+	ceil := func(row prc.Row, _ int) *prc.Row{
+		if len(row) == 1{
+			val, err := strconv.ParseFloat(row[0], 64)
+			if err == nil {
+				ceil := int(math.Ceil(val))
+				ceilStr := strconv.Itoa(ceil)
+				return &prc.Row{ceilStr}
+			}
+		}
+		return nil
+	}
+
+	m := prc.NewMapOperation(ceil)
+	f := &Ceil{MapOperation: m}
+	m.Op = f
+	return f
 }

@@ -3,7 +3,7 @@ package Implementations
 import prc "csvProcessing/Processing"
 
 type GetColumn struct {
-	*prc.BaseOperation
+	*prc.MapOperation
 	column int
 }
 
@@ -21,8 +21,15 @@ func (g *GetColumn) Run() prc.LazyTable {
 }
 
 func NewGetColumn(column int) prc.Operation {
-	base := &prc.BaseOperation{}
-	g := &GetColumn{BaseOperation: base, column: column}
-	base.Op = g
+	getColumn := func(row prc.Row, _ int) *prc.Row{
+		if len(row) > column{
+			return &prc.Row{row[column]}
+		}
+
+		return nil
+	}
+	m := prc.NewMapOperation(getColumn)
+	g := &GetColumn{MapOperation: m, column: column}
+	m.Op = g
 	return g
 }

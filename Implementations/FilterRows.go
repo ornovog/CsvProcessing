@@ -3,27 +3,21 @@ package Implementations
 import prc "csvProcessing/Processing"
 
 type FilterRows struct {
-	*prc.BaseOperation
+	*prc.MapOperation
 	column int
 	value  string
 }
 
-func (f *FilterRows) Run() prc.LazyTable {
-	go func() {
-		defer close(f.OutputTable)
-		for row := range f.InputTable {
-			if len(row) > f.column && row[f.column] == f.value {
-				f.OutputTable <- row
-			}
-		}
-	}()
-
-	return f.OutputTable
-}
-
 func NewFilterRows(column int, value string) prc.Operation {
-	base := &prc.BaseOperation{}
-	f := &FilterRows{BaseOperation: base, column: column, value: value}
-	base.Op = f
+	filterRows := func(row prc.Row, _ int) *prc.Row{
+		if len(row) > column && row[column] == value{
+			return &row
+		}
+
+		return nil
+	}
+	m := prc.NewMapOperation(filterRows)
+	f := &FilterRows{MapOperation: m, column: column, value: value}
+	m.Op = f
 	return f
 }
